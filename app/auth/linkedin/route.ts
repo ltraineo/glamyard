@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
   if (!linkedinEnabled) return NextResponse.redirect(new URL("/", req.url));
   const state = randomBytes(16).toString("hex");
   const invite = (req.nextUrl.searchParams.get("invite") || "").slice(0, 40);
+  const claim = (req.nextUrl.searchParams.get("claim") || "").slice(0, 80);
 
   const url = new URL("https://www.linkedin.com/oauth/v2/authorization");
   url.searchParams.set("response_type", "code");
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
   url.searchParams.set("scope", "openid profile email");
 
   const res = NextResponse.redirect(url);
-  res.cookies.set("li_state", JSON.stringify({ state, invite }), {
+  res.cookies.set("li_state", JSON.stringify({ state, invite, claim }), {
     httpOnly: true,
     sameSite: "lax",
     secure: secureCookies,

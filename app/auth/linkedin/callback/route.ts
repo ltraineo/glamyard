@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const go = (path: string) => NextResponse.redirect(new URL(path, req.url));
   if (!linkedinEnabled) return go("/");
 
-  let saved: { state?: string; invite?: string } = {};
+  let saved: { state?: string; invite?: string; claim?: string } = {};
   try {
     saved = JSON.parse(req.cookies.get("li_state")?.value || "{}");
   } catch {}
@@ -54,6 +54,24 @@ export async function GET(req: NextRequest) {
     await q("update users set avatar_url = $1 where id = $2", [profile.avatarUrl, existing[0].id]);
     await startSession(existing[0].id);
     return go("/events");
+  }
+
+  // One-time founder claim: attaches LinkedIn to the founder account when its
+  // email differs. Only works while FOUNDER_CLAIM_CODE is set and matches, and
+  // only for a founder that has no LinkedIn attached yet.
+  const claimCode = process.env.FOUNDER_CLAIM_CODE;
+  if (claimCode && saved.claim && saved.claim === claimCode) {
+    const founder = await q(
+      "select id from users where is_admin and linkedin_sub is null order by id limit 1"
+    );
+    if (founder.length) {
+      await q(
+        "update users set linkedin_sub = $1, avatar_url = $2, email = coalesce($3, email) where id = $4",
+        [sub, profile.avatarUrl, profile.email, founder[0].id]
+      );
+      await startSession(founder[0].id);
+      return go("/events");
+    }
   }
 
   // A member created with the placeholder sign-in: attach LinkedIn by email.
