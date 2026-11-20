@@ -38,7 +38,7 @@ export async function POST(
     const email = text(fd, "email", 200).toLowerCase();
     const code = text(fd, "code", 40) || null;
     const name = text(fd, "name", 80);
-    const back = code ? `/invite/${code}` : "/";
+    const back = code ? `/invite/${code}` : "/signin";
     if (!validEmail(email)) return go(`${back}?error=email`);
     const member = (await q("select 1 from users where email = $1", [email])).length > 0;
     if (code && !member) {

@@ -26,7 +26,7 @@ export default async function EmailLink({
       ) : (
         <>
           <p className="gate-line">This link has expired or was already used.</p>
-          <Link className="btn" href="/">
+          <Link className="btn" href="/signin">
             Get a new link
           </Link>
         </>

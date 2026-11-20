@@ -15,7 +15,7 @@ export default async function CheckEmail({
         invite, a link is on its way. It works once and expires in 30 minutes.
       </p>
       <p className="muted small">
-        Nothing after a few minutes? Check spam, or <Link href="/">try again</Link>.
+        Nothing after a few minutes? Check spam, or <Link href="/signin">try again</Link>.
       </p>
     </div>
   );
