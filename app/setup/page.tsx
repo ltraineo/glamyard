@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { APP_NAME, linkedinEnabled } from "@/lib/config";
+import { APP_NAME, placeholderEnabled } from "@/lib/config";
 import { memberCount } from "@/lib/members";
 
 export default async function Setup() {
-  if (linkedinEnabled || (await memberCount()) > 0) redirect("/");
+  if (!placeholderEnabled || (await memberCount()) > 0) redirect("/");
   return (
     <div className="gate">
       <h1 className="gate-name">{APP_NAME}</h1>

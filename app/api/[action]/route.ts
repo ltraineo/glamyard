@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { q } from "@/lib/db";
 import { getUser, startSession, endSession } from "@/lib/auth";
-import { linkedinEnabled } from "@/lib/config";
+import { baseUrl, emailEnabled, placeholderEnabled } from "@/lib/config";
 import {
   createFounder,
   createInvite,
+  findInvite,
   joinWithInvite,
+  memberCount,
   removeBranch,
   removeMember,
 } from "@/lib/members";
+import { admit, consumeEmailLink, createEmailLink, sendEmailLink, validEmail } from "@/lib/signin";
 import { extractEvent, fetchPage, normalizeUrl } from "@/lib/extract";
 import * as friends from "@/lib/friends";
 
@@ -29,9 +32,51 @@ export async function POST(
   const fd = await req.formData();
   const go = (path: string) => NextResponse.redirect(new URL(path, req.url), 303);
 
-  // ---- Placeholder sign-in. Disabled as soon as LinkedIn is configured. ----
+  // ---- Email sign-in links ----
+  if (action === "email-link") {
+    if (!emailEnabled) return go("/");
+    const email = text(fd, "email", 200).toLowerCase();
+    const code = text(fd, "code", 40) || null;
+    const name = text(fd, "name", 80);
+    const back = code ? `/invite/${code}` : "/";
+    if (!validEmail(email)) return go(`${back}?error=email`);
+    const member = (await q("select 1 from users where email = $1", [email])).length > 0;
+    if (code && !member) {
+      if (!name) return go(`${back}?error=missing`);
+      const inv = await findInvite(code);
+      if (!inv) return go(`${back}?error=invalid`);
+      if (inv.used_by) return go(`${back}?error=used`);
+    }
+    // Send only when the link can lead somewhere; the reply is the same either
+    // way, so this form never reveals who is a member.
+    if (member || code || (await memberCount()) === 0) {
+      const token = await createEmailLink({ email, name, headline: text(fd, "headline"), invite: member ? null : code });
+      if (token) {
+        const link = `${baseUrl(new URL(req.url).origin)}/auth/email?token=${token}`;
+        const sent = await sendEmailLink(email, link, !member);
+        if (!sent) return go(`${back}?error=send`);
+      }
+    }
+    return go(`/check-email?to=${encodeURIComponent(email)}`);
+  }
+
+  if (action === "email-confirm") {
+    const data = await consumeEmailLink(text(fd, "token", 100));
+    if (!data) return go("/?error=expired");
+    const res = await admit(
+      { provider: "email", email: data.email, emailVerified: true, name: data.name, headline: data.headline },
+      data.invite_code
+    );
+    if ("error" in res) {
+      return go(data.invite_code ? `/invite/${data.invite_code}?error=${res.error}` : `/?error=${res.error}`);
+    }
+    await startSession(res.id);
+    return go("/events");
+  }
+
+  // ---- Placeholder sign-in, local development only. ----
   if (action === "setup" || action === "join" || action === "signin") {
-    if (linkedinEnabled) return go("/");
+    if (!placeholderEnabled) return go("/");
     const email = text(fd, "email").toLowerCase();
     const name = text(fd, "name", 80);
     const headline = text(fd, "headline");
@@ -101,7 +146,20 @@ export async function POST(
   }
 
   if (action === "headline") {
-    await q("update users set headline = $1 where id = $2", [text(fd, "headline"), user.id]);
+    const raw = text(fd, "linkedin_url", 200);
+    let li: string | null = null;
+    if (raw) {
+      const u = normalizeUrl(raw);
+      // Only linkedin.com profile links.
+      if (u && /(^|\.)linkedin\.com$/i.test(u.hostname) && u.pathname.startsWith("/in/")) li = u.toString();
+      else return go(`/people/${user.id}?error=linkedin-url`);
+    }
+    await q("update users set headline = $1, linkedin_url = $2 where id = $3", [text(fd, "headline"), li, user.id]);
+    return go(`/people/${user.id}`);
+  }
+
+  if (action === "disconnect-linkedin") {
+    await q("update users set linkedin_sub = null where id = $1", [user.id]);
     return go(`/people/${user.id}`);
   }
 

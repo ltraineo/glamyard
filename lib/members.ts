@@ -28,7 +28,8 @@ export async function createFounder(p: Profile): Promise<number | null> {
 
 export async function findInvite(code: string) {
   const rows = await q(
-    `select i.code, i.used_by, u.id as inviter_id, u.name as inviter_name, u.headline as inviter_headline
+    `select i.code, i.used_by, u.id as inviter_id, u.name as inviter_name, u.headline as inviter_headline,
+            u.avatar_url as inviter_avatar
      from invites i join users u on u.id = i.inviter_id where i.code = $1`,
     [code]
   );

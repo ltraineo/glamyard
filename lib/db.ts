@@ -38,6 +38,18 @@ const SCHEMA = [
     created_at timestamptz not null default now(),
     primary key (user_id, event_id)
   )`,
+  `alter table users add column if not exists google_sub text unique`,
+  `alter table users add column if not exists linkedin_url text`,
+  `create table if not exists login_tokens (
+    hash text primary key,
+    email text not null,
+    name text not null default '',
+    headline text not null default '',
+    invite_code text,
+    expires_at timestamptz not null,
+    used_at timestamptz,
+    created_at timestamptz not null default now()
+  )`,
   `create table if not exists friendships (
     requester_id integer not null references users(id) on delete cascade,
     addressee_id integer not null references users(id) on delete cascade,

@@ -4,16 +4,31 @@ import { q } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { relation } from "@/lib/friends";
 import { dateRange } from "@/lib/format";
+import { linkedinEnabled } from "@/lib/config";
 import { Avatar, FriendButton, PersonRow } from "@/app/ui";
 
-export default async function PersonPage({ params }: { params: Promise<{ id: string }> }) {
+const PROFILE_ERRORS: Record<string, string> = {
+  linkedin: "LinkedIn didn't connect. Please try again.",
+  "linkedin-taken": "That LinkedIn account is already connected to another member.",
+  "linkedin-url": "Use your LinkedIn profile link, like linkedin.com/in/yourname.",
+};
+
+export default async function PersonPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
+}) {
   const me = await requireUser();
   const { id } = await params;
+  const { error } = await searchParams;
   const pid = parseInt(id, 10);
   if (!Number.isFinite(pid)) notFound();
 
   const [person] = await q(
-    `select u.id, u.name, u.headline, u.avatar_url, u.invited_by, v.name as voucher_name
+    `select u.id, u.name, u.headline, u.avatar_url, u.invited_by, v.name as voucher_name,
+            u.linkedin_url, (u.linkedin_sub is not null) as li_connected
      from users u left join users v on v.id = u.invited_by where u.id = $1`,
     [pid]
   );
@@ -56,18 +71,52 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
               "Founding member"
             )}
             {rel === "friends" && " · Friends"}
+            {person.linkedin_url && (
+              <>
+                {" · "}
+                <a href={person.linkedin_url} target="_blank" rel="noreferrer">
+                  LinkedIn ↗
+                </a>
+              </>
+            )}
           </p>
         </div>
         <FriendButton id={pid} rel={rel} next={here} />
       </div>
 
+      {error && PROFILE_ERRORS[error] && <p className="error">{PROFILE_ERRORS[error]}</p>}
+
       {mine && (
-        <form method="post" action="/api/headline" className="inline-form">
-          <input name="headline" defaultValue={person.headline} placeholder="Your headline" maxLength={140} aria-label="Your headline" />
-          <button className="btn btn-small" type="submit">
-            Save headline
-          </button>
-        </form>
+        <section className="edit-profile">
+          <form method="post" action="/api/headline" className="suggest-grid">
+            <label>
+              Headline
+              <input name="headline" defaultValue={person.headline} placeholder="VP Events at Acme" maxLength={140} />
+            </label>
+            <label>
+              LinkedIn profile link
+              <input name="linkedin_url" defaultValue={person.linkedin_url || ""} placeholder="linkedin.com/in/yourname" inputMode="url" />
+            </label>
+            <div className="wide row">
+              <button className="btn btn-small" type="submit">
+                Save profile
+              </button>
+              {linkedinEnabled &&
+                (person.li_connected ? (
+                  <span className="muted small">
+                    LinkedIn connected.{" "}
+                    <button className="link muted small" type="submit" formAction="/api/disconnect-linkedin">
+                      Disconnect
+                    </button>
+                  </span>
+                ) : (
+                  <a className="small" href="/auth/linkedin?connect=1">
+                    Connect LinkedIn to use your photo
+                  </a>
+                ))}
+            </div>
+          </form>
+        </section>
       )}
 
       <h2 className="month">{mine ? "Where you'll be" : `Where ${first}'ll be`}</h2>
