@@ -19,6 +19,9 @@ export default async function Home({
       <p className="gate-line">Invite only. Members sign in below.</p>
       {error && SIGNIN_ERRORS[error] && <p className="error">{SIGNIN_ERRORS[error]}</p>}
       <SignInOptions />
+      <p className="footer-links">
+        <a className="muted" href="/privacy">Privacy</a>
+      </p>
     </div>
   );
 }

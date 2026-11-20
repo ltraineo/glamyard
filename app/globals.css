@@ -128,6 +128,13 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .table th, .table td { padding: 0.6rem 0.5rem 0.6rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
 .actions form { display: inline; margin-right: 0.75rem; }
 
+/* Privacy page */
+.prose { max-width: 640px; }
+.prose h2 { font-size: 1.05rem; margin: 1.8rem 0 0.4rem; }
+.prose ul { padding-left: 1.2rem; }
+.prose li { margin: 0.3rem 0; }
+.gate .footer-links { margin-top: 2rem; font-size: 0.82rem; }
+
 /* Sign-in */
 .btn-google { display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; border-color: var(--line); color: var(--ink); }
 .btn-google:hover { background: var(--wash); color: var(--ink); }
