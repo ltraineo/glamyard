@@ -117,27 +117,55 @@ export async function consumeEmailLink(token: string) {
   return rows[0] || null;
 }
 
-export async function sendEmailLink(to: string, link: string, joining: boolean) {
-  const verb = joining ? "Finish joining" : "Sign in to";
-  const html = `<!doctype html><html><body style="margin:0;padding:32px;background:#fafafa;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#16181d">
+const esc = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+function emailHtml(body: string, link: string, button: string, footer: string) {
+  return `<!doctype html><html><body style="margin:0;padding:32px;background:#fafafa;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#16181d">
 <div style="max-width:440px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:32px">
 <p style="font-family:Georgia,serif;font-size:26px;margin:0 0 16px">${APP_NAME}</p>
-<p style="margin:0 0 24px;line-height:1.5">Tap the button to ${verb.toLowerCase()} ${APP_NAME}. The link works once and expires in 30 minutes.</p>
-<p style="margin:0 0 24px"><a href="${link}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:999px">${verb} ${APP_NAME}</a></p>
-<p style="margin:0;font-size:13px;color:#6b7280;line-height:1.5">If you didn't ask for this, you can ignore it.</p>
+<p style="margin:0 0 24px;line-height:1.5">${body}</p>
+<p style="margin:0 0 24px"><a href="${link}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:999px">${button}</a></p>
+<p style="margin:0;font-size:13px;color:#6b7280;line-height:1.5">${footer}</p>
 </div></body></html>`;
+}
+
+export async function sendInviteEmail(to: string, name: string, inviter: string, link: string) {
+  const first = name.split(" ")[0] || "there";
+  const html = emailHtml(
+    `Hi ${esc(first)}, ${esc(inviter)} approved your request to join ${APP_NAME}, the private list of who's going to which industry events.`,
+    link,
+    `Accept your invite`,
+    `This invite works once. If you didn't request it, you can ignore this email.`
+  );
+  const text = `Hi ${first}, ${inviter} approved your request to join ${APP_NAME}.\n\nAccept your invite: ${link}\n\nThis invite works once.`;
+  return sendEmail(to, `Your ${APP_NAME} invite`, html, text, link);
+}
+
+export async function sendEmailLink(to: string, link: string, joining: boolean) {
+  const verb = joining ? "Finish joining" : "Sign in to";
+  const html = emailHtml(
+    `Tap the button to ${verb.toLowerCase()} ${APP_NAME}. The link works once and expires in 30 minutes.`,
+    link,
+    `${verb} ${APP_NAME}`,
+    `If you didn't ask for this, you can ignore it.`
+  );
+  const text = `${verb} ${APP_NAME}: ${link}\n\nThe link works once and expires in 30 minutes. If you didn't ask for this, ignore this email.`;
+  return sendEmail(to, `${verb} ${APP_NAME}`, html, text, link);
+}
+
+async function sendEmail(to: string, subject: string, html: string, text: string, link: string) {
   if (process.env.EMAIL_DEV_LOG === "1" && process.env.NODE_ENV !== "production") {
     console.log(`[email to ${to}] ${link}`);
     return true;
   }
-  const text = `${verb} ${APP_NAME}: ${link}\n\nThe link works once and expires in 30 minutes. If you didn't ask for this, ignore this email.`;
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from: EMAIL_FROM, to: [to], subject: `${verb} ${APP_NAME}`, html, text }),
+    body: JSON.stringify({ from: EMAIL_FROM, to: [to], subject, html, text }),
   });
   if (!res.ok) {
     console.error("resend failed", res.status, await res.text().catch(() => ""));

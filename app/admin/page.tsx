@@ -3,7 +3,11 @@ import { redirect } from "next/navigation";
 import { q } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 
-export default async function Admin() {
+export default async function Admin({
+  searchParams,
+}: {
+  searchParams: Promise<{ unsent?: string }>;
+}) {
   const me = await requireUser();
   if (!me.is_admin) redirect("/events");
 
@@ -24,6 +28,13 @@ export default async function Admin() {
      from suggestions s left join users u on u.id = s.suggested_by
      where s.status = 'pending' order by s.created_at`
   );
+  const requests = await q(
+    "select id, name, email, company, note, created_at from invite_requests where status = 'pending' order by created_at"
+  );
+  const unsentId = (await searchParams).unsent;
+  const [unsent] = unsentId
+    ? await q("select name, email, invite_code from invite_requests where id = $1", [parseInt(unsentId, 10) || 0])
+    : [];
   const active = members.filter((m) => m.checkins > 0).length;
   const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "n/a");
 
@@ -50,6 +61,45 @@ export default async function Admin() {
           <span>invites accepted ({pct(stats.accepted, stats.sent)})</span>
         </div>
       </div>
+
+      <h2 className="month" id="requests">
+        Invite requests ({requests.length})
+      </h2>
+      {unsent && (
+        <p className="error">
+          The invite email to {unsent.email} didn&apos;t send. Send {unsent.name} this link yourself: /invite/
+          {unsent.invite_code}
+        </p>
+      )}
+      {requests.length === 0 ? (
+        <p className="muted">Nothing waiting.</p>
+      ) : (
+        <ul className="people">
+          {requests.map((r) => (
+            <li key={r.id} className="person">
+              <div className="person-text">
+                <strong>{r.name}</strong> <span className="muted small">{r.email}</span>
+                {r.company && <div className="muted">{r.company}</div>}
+                {r.note && <div className="small">Knows: {r.note}</div>}
+              </div>
+              <div className="row-actions">
+                <form method="post" action="/api/approve-request">
+                  <input type="hidden" name="id" value={r.id} />
+                  <button className="btn btn-small btn-on" type="submit">
+                    Send invite
+                  </button>
+                </form>
+                <form method="post" action="/api/dismiss-request">
+                  <input type="hidden" name="id" value={r.id} />
+                  <button className="link muted small" type="submit">
+                    Dismiss
+                  </button>
+                </form>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <h2 className="month" id="suggestions">
         Suggested events ({suggestions.length})

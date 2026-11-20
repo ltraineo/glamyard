@@ -134,6 +134,9 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .prose ul { padding-left: 1.2rem; }
 .prose li { margin: 0.3rem 0; }
 .gate .footer-links { margin-top: 2rem; font-size: 0.82rem; }
+.gate-logo { display: block; margin: 0 auto 1.25rem; width: 109px; height: auto; }
+.gate-tagline { font-family: var(--serif); font-style: italic; font-size: 1.25rem; margin: 0 0 0.4rem; }
+.gate .gate-tagline + .muted { margin: 0; }
 
 /* Sign-in */
 .btn-google { display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; border-color: var(--line); color: var(--ink); }

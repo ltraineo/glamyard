@@ -50,6 +50,16 @@ const SCHEMA = [
     used_at timestamptz,
     created_at timestamptz not null default now()
   )`,
+  `create table if not exists invite_requests (
+    id serial primary key,
+    name text not null,
+    email text not null,
+    company text not null default '',
+    note text not null default '',
+    status text not null default 'pending',
+    invite_code text,
+    created_at timestamptz not null default now()
+  )`,
   `create table if not exists friendships (
     requester_id integer not null references users(id) on delete cascade,
     addressee_id integer not null references users(id) on delete cascade,

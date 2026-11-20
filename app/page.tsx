@@ -18,9 +18,14 @@ export default async function Home({
 
   return (
     <div className="gate">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="gate-logo" src="/logo.png" alt="" width={109} height={220} />
       <h1 className="gate-name">{APP_NAME}</h1>
-      <p className="gate-line">Invite only.</p>
+      <p className="gate-tagline">Who do I know at this event?</p>
+      <p className="muted small">Invite only.</p>
       <p className="footer-links">
+        <Link href="/request">Request an invite</Link>
+        <span className="muted"> · </span>
         <Link className="muted" href="/signin">
           Member sign in
         </Link>

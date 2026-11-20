@@ -11,7 +11,14 @@ import {
   removeBranch,
   removeMember,
 } from "@/lib/members";
-import { admit, consumeEmailLink, createEmailLink, sendEmailLink, validEmail } from "@/lib/signin";
+import {
+  admit,
+  consumeEmailLink,
+  createEmailLink,
+  sendEmailLink,
+  sendInviteEmail,
+  validEmail,
+} from "@/lib/signin";
 import { extractEvent, fetchPage, normalizeUrl } from "@/lib/extract";
 import * as friends from "@/lib/friends";
 
@@ -58,6 +65,29 @@ export async function POST(
       }
     }
     return go(`/check-email?to=${encodeURIComponent(email)}`);
+  }
+
+  if (action === "request-invite") {
+    const name = text(fd, "name", 80);
+    const email = text(fd, "email", 200).toLowerCase();
+    if (!name || !email) return go("/request?error=missing");
+    if (!validEmail(email)) return go("/request?error=email");
+    // Bots that fill the hidden field, existing members and repeat requests all
+    // get the same thank-you, but only genuinely new requests are queued.
+    if (!text(fd, "website")) {
+      const member = (await q("select 1 from users where email = $1", [email])).length > 0;
+      const pending = (await q("select 1 from invite_requests where email = $1 and status = 'pending'", [email])).length > 0;
+      const [{ n }] = await q("select count(*)::int as n from invite_requests where created_at > now() - interval '1 hour'");
+      if (!member && !pending && n < 50) {
+        await q("insert into invite_requests (name, email, company, note) values ($1,$2,$3,$4)", [
+          name,
+          email,
+          text(fd, "company"),
+          text(fd, "note", 280),
+        ]);
+      }
+    }
+    return go("/request?sent=1");
   }
 
   if (action === "email-confirm") {
@@ -185,6 +215,29 @@ export async function POST(
       [href, draft.name, draft.start, draft.end, draft.city, user.id]
     );
     return go("/events?suggest=ok#suggest");
+  }
+
+  if (action === "approve-request" || action === "dismiss-request") {
+    if (!user.is_admin) return go("/events");
+    const id = parseInt(text(fd, "id"), 10);
+    const [r] = Number.isFinite(id)
+      ? await q("select * from invite_requests where id = $1 and status = 'pending'", [id])
+      : [];
+    if (!r) return go("/admin#requests");
+    if (action === "dismiss-request") {
+      await q("update invite_requests set status = 'dismissed' where id = $1", [id]);
+      return go("/admin#requests");
+    }
+    const code = await createInvite(user);
+    if (!code) return go("/admin?error=invite#requests");
+    const link = `${baseUrl(new URL(req.url).origin)}/invite/${code}`;
+    const sent = emailEnabled ? await sendInviteEmail(r.email, r.name, user.name, link) : false;
+    await q("update invite_requests set status = $1, invite_code = $2 where id = $3", [
+      sent ? "invited" : "approved",
+      code,
+      id,
+    ]);
+    return go(sent ? "/admin#requests" : `/admin?unsent=${id}#requests`);
   }
 
   if (action === "approve" || action === "dismiss") {
