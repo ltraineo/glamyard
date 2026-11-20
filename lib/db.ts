@@ -38,6 +38,18 @@ const SCHEMA = [
     created_at timestamptz not null default now(),
     primary key (user_id, event_id)
   )`,
+  `create table if not exists suggestions (
+    id serial primary key,
+    url text not null,
+    name text not null default '',
+    start_date text,
+    end_date text,
+    city text not null default '',
+    suggested_by integer references users(id) on delete set null,
+    status text not null default 'pending',
+    event_id integer references events(id) on delete set null,
+    created_at timestamptz not null default now()
+  )`,
 ];
 
 async function init(): Promise<Run> {

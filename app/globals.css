@@ -128,7 +128,20 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .table th, .table td { padding: 0.6rem 0.5rem 0.6rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
 .actions form { display: inline; margin-right: 0.75rem; }
 
+/* Suggestions */
+.suggest { margin-top: 2.5rem; }
+.suggest p { margin: 0 0 0.6rem; }
+.ok { color: #1d6b3a; font-weight: 600; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.suggestion { padding: 1rem 0; border-bottom: 1px solid var(--line); }
+.suggestion p { margin: 0 0 0.6rem; word-break: break-all; }
+.suggest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 0.9rem; }
+.suggest-grid label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.82rem; color: var(--muted); }
+.suggest-grid .wide { grid-column: 1 / -1; }
+.suggest-grid .row { display: flex; align-items: center; gap: 1rem; }
+
 @media (max-width: 560px) {
+  .suggest-grid { grid-template-columns: 1fr; }
   h1 { font-size: 1.7rem; }
   .event { flex-direction: column; align-items: flex-start; }
   .event-head { flex-direction: column; }

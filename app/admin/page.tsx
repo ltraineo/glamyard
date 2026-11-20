@@ -19,6 +19,11 @@ export default async function Admin() {
             (select count(*)::int from invites where used_by is not null) as accepted,
             (select count(*)::int from checkins) as checkins`
   );
+  const suggestions = await q(
+    `select s.id, s.url, s.name, s.start_date, s.end_date, s.city, u.name as by_name
+     from suggestions s left join users u on u.id = s.suggested_by
+     where s.status = 'pending' order by s.created_at`
+  );
   const active = members.filter((m) => m.checkins > 0).length;
   const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "n/a");
 
@@ -45,6 +50,56 @@ export default async function Admin() {
           <span>invites accepted ({pct(stats.accepted, stats.sent)})</span>
         </div>
       </div>
+
+      <h2 className="month" id="suggestions">
+        Suggested events ({suggestions.length})
+      </h2>
+      {suggestions.length === 0 ? (
+        <p className="muted">Nothing waiting.</p>
+      ) : (
+        suggestions.map((s) => (
+          <div key={s.id} id={`s${s.id}`} className="suggestion">
+            <p className="muted small">
+              From {s.by_name || "a former member"} ·{" "}
+              <a href={s.url} target="_blank" rel="noreferrer">
+                {s.url} ↗
+              </a>
+              {!s.name && " · Couldn't read the page, fill in the details"}
+            </p>
+            <form method="post" action="/api/approve" className="suggest-grid">
+              <input type="hidden" name="id" value={s.id} />
+              <label>
+                Name
+                <input name="name" defaultValue={s.name} required />
+              </label>
+              <label>
+                City
+                <input name="city" defaultValue={s.city} />
+              </label>
+              <label>
+                Starts
+                <input name="start_date" type="date" defaultValue={s.start_date || ""} />
+              </label>
+              <label>
+                Ends
+                <input name="end_date" type="date" defaultValue={s.end_date || ""} />
+              </label>
+              <label className="wide">
+                Website
+                <input name="url" defaultValue={s.url} />
+              </label>
+              <div className="wide row">
+                <button className="btn btn-small btn-on" type="submit">
+                  Approve and add
+                </button>
+                <button className="link danger" type="submit" formAction="/api/dismiss" formNoValidate>
+                  Dismiss
+                </button>
+              </div>
+            </form>
+          </div>
+        ))
+      )}
 
       <h2 className="month">Members</h2>
       <table className="table">
