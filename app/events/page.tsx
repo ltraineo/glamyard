@@ -2,6 +2,7 @@ import Link from "next/link";
 import { q } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { circleFirst } from "@/lib/circle";
+import { relationMap } from "@/lib/friends";
 import { dateRange, monthLabel } from "@/lib/format";
 import { Avatar, CheckinButton } from "@/app/ui";
 
@@ -26,6 +27,7 @@ export default async function Events({
     `select c.event_id, u.id, u.name, u.avatar_url, u.invited_by
      from checkins c join users u on u.id = c.user_id order by c.created_at`
   );
+  const rels = await relationMap(me.id);
   const byEvent = new Map<number, any[]>();
   for (const r of rows) {
     if (!byEvent.has(r.event_id)) byEvent.set(r.event_id, []);
@@ -38,9 +40,9 @@ export default async function Events({
       <h1>Events</h1>
       <p className="lede">Mark where you&apos;ll be. See who else is going.</p>
       {events.map((e) => {
-        const people = circleFirst(me, byEvent.get(e.id) || []);
+        const people = circleFirst(me, byEvent.get(e.id) || [], rels);
         const going = people.some((p) => p.id === me.id);
-        const known = people.filter((p) => p.tag && p.tag !== "You").length;
+        const known = people.filter((p) => p.tag === "Friend").length;
         const month = monthLabel(e.start_date);
         const heading = month !== lastMonth ? <h2 className="month">{month}</h2> : null;
         lastMonth = month;
@@ -63,7 +65,7 @@ export default async function Events({
                   <span className="muted small">
                     {people.length === 0
                       ? "No one yet"
-                      : `${people.length} going${known ? ` · ${known} in your circle` : ""}`}
+                      : `${people.length} going${known ? ` · ${known} ${known === 1 ? "friend" : "friends"}` : ""}`}
                   </span>
                 </div>
               </div>

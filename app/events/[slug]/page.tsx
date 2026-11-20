@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { q } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { circleFirst } from "@/lib/circle";
+import { relationMap } from "@/lib/friends";
 import { dateRange } from "@/lib/format";
-import { CheckinButton, PersonRow } from "@/app/ui";
+import { CheckinButton, FriendButton, PersonRow } from "@/app/ui";
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const me = await requireUser();
@@ -18,8 +19,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
      where c.event_id = $1 order by c.created_at`,
     [event.id]
   );
-  const people = circleFirst(me, attendees as any[]);
+  const rels = await relationMap(me.id);
+  const people = circleFirst(me, attendees as any[], rels);
   const going = people.some((p) => p.id === me.id);
+  const friendCount = people.filter((p) => p.tag === "Friend").length;
+  const here = `/events/${event.slug}`;
 
   return (
     <>
@@ -41,18 +45,25 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </p>
           )}
         </div>
-        <CheckinButton eventId={event.id} going={going} next={`/events/${event.slug}`} />
+        <CheckinButton eventId={event.id} going={going} next={here} />
       </div>
 
       <h2 className="month">
-        {people.length === 0 ? "No one yet" : `${people.length} going`}
+        {people.length === 0
+          ? "No one yet"
+          : `${people.length} going${friendCount ? ` · ${friendCount} ${friendCount === 1 ? "friend" : "friends"}` : ""}`}
       </h2>
       {people.length === 0 ? (
         <p className="muted">Be the first. Others will see you here.</p>
       ) : (
         <ul className="people">
           {people.map((p) => (
-            <PersonRow key={p.id} person={p as any} tag={p.tag || undefined} />
+            <PersonRow
+              key={p.id}
+              person={p as any}
+              tag={p.tag || undefined}
+              action={<FriendButton id={p.id} rel={rels.get(p.id) || (p.id === me.id ? "self" : "none")} next={here} compact />}
+            />
           ))}
         </ul>
       )}

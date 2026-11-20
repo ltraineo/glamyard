@@ -10,6 +10,7 @@ import {
   removeMember,
 } from "@/lib/members";
 import { extractEvent, fetchPage, normalizeUrl } from "@/lib/extract";
+import * as friends from "@/lib/friends";
 
 function text(fd: FormData, key: string, max = 140) {
   return String(fd.get(key) ?? "").trim().slice(0, max);
@@ -79,6 +80,17 @@ export async function POST(
           [user.id, eventId]
         );
       }
+    }
+    return go(next);
+  }
+
+  if (action === "friend" || action === "accept" || action === "unfriend") {
+    const other = parseInt(text(fd, "id"), 10);
+    const next = safePath(text(fd, "next", 200), "/friends");
+    if (Number.isFinite(other)) {
+      if (action === "friend") await friends.request(user.id, other);
+      else if (action === "accept") await friends.accept(user.id, other);
+      else await friends.remove(user.id, other);
     }
     return go(next);
   }

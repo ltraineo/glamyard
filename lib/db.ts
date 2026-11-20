@@ -38,6 +38,17 @@ const SCHEMA = [
     created_at timestamptz not null default now(),
     primary key (user_id, event_id)
   )`,
+  `create table if not exists friendships (
+    requester_id integer not null references users(id) on delete cascade,
+    addressee_id integer not null references users(id) on delete cascade,
+    status text not null default 'pending',
+    created_at timestamptz not null default now(),
+    accepted_at timestamptz,
+    primary key (requester_id, addressee_id),
+    check (requester_id <> addressee_id)
+  )`,
+  `create unique index if not exists friendships_pair
+    on friendships (least(requester_id, addressee_id), greatest(requester_id, addressee_id))`,
   `create table if not exists suggestions (
     id serial primary key,
     url text not null,
