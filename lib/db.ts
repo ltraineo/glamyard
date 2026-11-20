@@ -42,10 +42,13 @@ const SCHEMA = [
 
 async function init(): Promise<Run> {
   let run: Run;
-  if (process.env.DATABASE_URL) {
+  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  if (url) {
     const { Pool } = await import("pg");
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 3 });
+    const pool = new Pool({ connectionString: url, max: 3 });
     run = async (sql, params = []) => (await pool.query(sql, params)).rows;
+  } else if (process.env.VERCEL) {
+    throw new Error("No database connected. Set DATABASE_URL to a Postgres connection string.");
   } else {
     // Local development fallback: Postgres compiled to WASM, stored in ./.data
     const { PGlite } = await import("@electric-sql/pglite");
