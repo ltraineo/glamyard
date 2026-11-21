@@ -7,7 +7,7 @@ import { Stamp } from "@/app/stamp";
 export const metadata = { title: `Ask nicely · ${APP_NAME}` };
 
 const ERRORS: Record<string, string> = {
-  missing: "We need an email.",
+  missing: "We need your name and email.",
   email: "That doesn't look like an email.",
 };
 
@@ -39,6 +39,12 @@ export default async function RequestInvite({
       <p className="gate-line">Members only. Tell us who sent you.</p>
       {error && ERRORS[error] && <p className="error">{ERRORS[error]}</p>}
       <form method="post" action="/api/request-invite" className="stack gate-form">
+        <div className="name-row">
+          <label className="sr-only" htmlFor="rq-first">First name</label>
+          <input id="rq-first" name="first_name" placeholder="First name" autoComplete="given-name" required />
+          <label className="sr-only" htmlFor="rq-last">Last name</label>
+          <input id="rq-last" name="last_name" placeholder="Last name" autoComplete="family-name" required />
+        </div>
         <label className="sr-only" htmlFor="rq-email">Email</label>
         <input id="rq-email" name="email" type="email" placeholder="you@company.com" autoComplete="email" required />
         <label className="sr-only" htmlFor="rq-note">Who sent you</label>

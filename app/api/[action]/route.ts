@@ -69,10 +69,8 @@ export async function POST(
 
   if (action === "request-invite") {
     const email = text(fd, "email", 200).toLowerCase();
-    // The form asks only for email and who sent you; name falls back to the
-    // email's local part so the admin queue still has something to show.
-    const name = text(fd, "name", 80) || email.split("@")[0].slice(0, 80);
-    if (!email) return go("/request?error=missing");
+    const name = (text(fd, "name", 80) || `${text(fd, "first_name", 40)} ${text(fd, "last_name", 40)}`).trim();
+    if (!name || !email) return go("/request?error=missing");
     if (!validEmail(email)) return go("/request?error=email");
     // Bots that fill the hidden field, existing members and repeat requests all
     // get the same thank-you, but only genuinely new requests are queued.
