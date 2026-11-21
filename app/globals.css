@@ -376,9 +376,12 @@ select {
   background: var(--paper); color: var(--ink); width: 100%;
 }
 .night select { font-family: var(--mono); background: var(--wash); border-radius: 4px; }
-.photo-danger { margin-top: 2.2rem; display: flex; flex-direction: column; gap: 0.8rem; align-items: flex-start; }
+.photo-danger { margin: 0 0 1.4rem; display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: flex-start; }
 .photo-danger form { margin: 0; }
-.photo-danger summary { cursor: pointer; list-style: none; color: var(--muted); }
+.photo-danger summary { cursor: pointer; list-style: none; display: inline-block; }
+.btn-danger, .night .btn-danger { border-color: var(--danger); color: var(--danger); background: transparent; }
+.btn-danger:hover, .night .btn-danger:hover { background: var(--danger); border-color: var(--danger); color: #0b0b0f; }
+.photo-danger details[open] { flex-basis: 100%; }
 .photo-danger summary::-webkit-details-marker { display: none; }
 .takedown { margin-top: 0.6rem; padding: 0.8rem; border: 1px solid var(--line); border-radius: 6px; max-width: 420px; }
 .takedown p { margin: 0 0 0.6rem; }

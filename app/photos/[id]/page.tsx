@@ -68,6 +68,31 @@ export default async function PhotoPage({
         </figcaption>
       </figure>
 
+      <section className="photo-danger">
+        {canDelete && (
+          <form method="post" action="/api/photo-delete">
+            <input type="hidden" name="photo_id" value={id} />
+            <button className="btn btn-small btn-danger" type="submit">
+              {mine ? "Delete my photo" : "Delete photo (admin)"}
+            </button>
+          </form>
+        )}
+        {!mine && (
+          <details>
+            <summary className="btn btn-small btn-quiet">{myTag ? "Take this down" : "I'm in this photo. Take it down."}</summary>
+            <form method="post" action="/api/photo-takedown" className="takedown">
+              <input type="hidden" name="photo_id" value={id} />
+              <p className="muted small">
+                This removes the photo for everyone, right away. Your name is noted in the admin log.
+              </p>
+              <button className="btn btn-small" type="submit">
+                Remove it
+              </button>
+            </form>
+          </details>
+        )}
+      </section>
+
       {m && MSGS[m] && <p className="ok small">{MSGS[m]}</p>}
 
       <h2 className="month">In this photo</h2>
@@ -126,30 +151,6 @@ export default async function PhotoPage({
         </form>
       )}
 
-      <section className="photo-danger">
-        {canDelete && (
-          <form method="post" action="/api/photo-delete">
-            <input type="hidden" name="photo_id" value={id} />
-            <button className="link danger small" type="submit">
-              {mine ? "Delete my photo" : "Delete photo (admin)"}
-            </button>
-          </form>
-        )}
-        {!mine && (
-          <details>
-            <summary className="link small">{myTag ? "Take this down" : "I'm in this photo. Take it down."}</summary>
-            <form method="post" action="/api/photo-takedown" className="takedown">
-              <input type="hidden" name="photo_id" value={id} />
-              <p className="muted small">
-                This removes the photo for everyone, right away. Your name is noted in the admin log.
-              </p>
-              <button className="btn btn-small" type="submit">
-                Remove it
-              </button>
-            </form>
-          </details>
-        )}
-      </section>
     </>
   );
 }
