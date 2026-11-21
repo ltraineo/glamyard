@@ -7,9 +7,9 @@ import { dateRange, monthLabel } from "@/lib/format";
 import { Avatar, CheckinButton } from "@/app/ui";
 
 const SUGGEST_MSG: Record<string, { text: string; error?: boolean }> = {
-  ok: { text: "Thanks. It's in the review queue." },
-  dupe: { text: "That event is already listed or waiting for review." },
-  bad: { text: "That doesn't look like a web address.", error: true },
+  ok: { text: "Got it. We'll take a look." },
+  dupe: { text: "Already on our radar." },
+  bad: { text: "That doesn't look like a link.", error: true },
 };
 
 export default async function Events({
@@ -37,8 +37,8 @@ export default async function Events({
   let lastMonth = "";
   return (
     <>
-      <h1>Events</h1>
-      <p className="lede">Mark where you&apos;ll be. See who else is going.</p>
+      <h1>Who&apos;s going where</h1>
+      <p className="lede">Mark your events. See who&apos;s in town.</p>
       {events.map((e) => {
         const people = circleFirst(me, byEvent.get(e.id) || [], rels);
         const going = people.some((p) => p.id === me.id);
@@ -64,7 +64,7 @@ export default async function Events({
                   ))}
                   <span className="muted small">
                     {people.length === 0
-                      ? "No one yet"
+                      ? "Quiet so far"
                       : `${people.length} going${known ? ` · ${known} ${known === 1 ? "friend" : "friends"}` : ""}`}
                   </span>
                 </div>
@@ -76,16 +76,16 @@ export default async function Events({
       })}
 
       <section id="suggest" className="suggest">
-        <h2 className="month">Missing an event?</h2>
-        <p className="muted">Paste its website and we&apos;ll add it after a quick review.</p>
+        <h2 className="month">Know something we don&apos;t?</h2>
+        <p className="muted">Drop the event&apos;s website. We&apos;ll add it after a look.</p>
         {msg && <p className={msg.error ? "error" : "ok"}>{msg.text}</p>}
         <form method="post" action="/api/suggest" className="inline-form">
           <label htmlFor="suggest-url" className="sr-only">
             Event website
           </label>
-          <input id="suggest-url" name="url" type="text" inputMode="url" autoComplete="off" placeholder="Event website, e.g. imexamerica.com" required />
+          <input id="suggest-url" name="url" type="text" inputMode="url" autoComplete="off" placeholder="imexamerica.com" required />
           <button className="btn btn-small" type="submit">
-            Suggest event
+            Tip us off
           </button>
         </form>
       </section>

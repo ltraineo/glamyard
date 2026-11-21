@@ -28,7 +28,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   return (
     <>
       <p className="crumb">
-        <Link href="/events">← All events</Link>
+        <Link href="/events">← Back</Link>
       </p>
       <div className="event-head">
         <div>
@@ -40,7 +40,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           {event.url && (
             <p>
               <a href={event.url} target="_blank" rel="noreferrer">
-                Event website ↗
+                Official site ↗
               </a>
             </p>
           )}
@@ -50,11 +50,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
       <h2 className="month">
         {people.length === 0
-          ? "No one yet"
+          ? "Quiet so far"
           : `${people.length} going${friendCount ? ` · ${friendCount} ${friendCount === 1 ? "friend" : "friends"}` : ""}`}
       </h2>
       {people.length === 0 ? (
-        <p className="muted">Be the first. Others will see you here.</p>
+        <p className="muted">Nobody&apos;s here yet. Suspicious. Be first.</p>
       ) : (
         <ul className="people">
           {people.map((p) => (

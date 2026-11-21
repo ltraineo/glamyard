@@ -88,7 +88,7 @@ export function CheckinButton({
       <input type="hidden" name="event_id" value={eventId} />
       <input type="hidden" name="next" value={next} />
       <button className={going ? "btn btn-on" : "btn"} type="submit">
-        {going ? "Going ✓" : "I'm going"}
+        {going ? "You're in" : "I'm in"}
       </button>
     </form>
   );

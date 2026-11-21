@@ -28,15 +28,15 @@ export default async function Friends() {
 
   return (
     <>
-      <h1>Friends</h1>
+      <h1>Your people</h1>
       <p className="lede">
-        Friends see each other&apos;s full schedule and show up first on every attendee list. Add
-        people from any event page or profile.
+        Friends see each other&apos;s full schedule and show up first on every list. Add people from
+        any event or profile.
       </p>
 
       {incoming.length > 0 && (
         <>
-          <h2 className="month">Requests ({incoming.length})</h2>
+          <h2 className="month">Wants in ({incoming.length})</h2>
           <ul className="people">
             {incoming.map((p) => (
               <PersonRow
@@ -45,7 +45,7 @@ export default async function Friends() {
                 action={
                   <div className="row-actions">
                     {form("accept", p.id, "Accept", "btn btn-small btn-on")}
-                    {form("unfriend", p.id, "Decline", "link muted small")}
+                    {form("unfriend", p.id, "Pass", "link muted small")}
                   </div>
                 }
               />
@@ -54,9 +54,9 @@ export default async function Friends() {
         </>
       )}
 
-      <h2 className="month">Your friends ({friends.length})</h2>
+      <h2 className="month">Friends ({friends.length})</h2>
       {friends.length === 0 ? (
-        <p className="muted">None yet. Open an event and add people you know from the attendee list.</p>
+        <p className="muted">Nobody yet. Open an event and add the people you know.</p>
       ) : (
         <ul className="people">
           {friends.map((p) => (
@@ -67,7 +67,7 @@ export default async function Friends() {
 
       {outgoing.length > 0 && (
         <>
-          <h2 className="month">Sent ({outgoing.length})</h2>
+          <h2 className="month">Waiting on ({outgoing.length})</h2>
           <ul className="people">
             {outgoing.map((p) => (
               <PersonRow

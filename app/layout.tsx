@@ -22,9 +22,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&display=swap"
         />
-        {!user && <meta name="theme-color" content="#0B0B0F" />}
+        <meta name="theme-color" content="#0B0B0F" />
       </head>
-      <body className={user ? undefined : "night"}>
+      <body className="night">
         {user && (
           <header className="top">
             <Link href="/events" className="brand">
@@ -40,7 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {user.is_admin && <Link href="/admin">Admin</Link>}
               <form method="post" action="/api/signout">
                 <button className="link" type="submit">
-                  Sign out
+                  Leave
                 </button>
               </form>
             </nav>

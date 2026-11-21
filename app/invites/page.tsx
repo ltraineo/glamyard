@@ -30,13 +30,13 @@ export default async function Invites({
     <>
       <h1>Invites</h1>
       <p className="lede">
-        Each link works once. Your name appears on the profile of everyone you bring in, so invite
-        people you&apos;d vouch for.
+        Each link works once. Your name follows everyone you bring in, so only bring people you&apos;d
+        vouch for.
       </p>
-      {error === "cap" && <p className="error">You&apos;ve used all your invites.</p>}
+      {error === "cap" && <p className="error">You&apos;re out of invites.</p>}
       <form method="post" action="/api/invite">
         <button className="btn" type="submit">
-          Create invite link
+          New invite link
         </button>
         {capped && (
           <span className="muted small">
@@ -46,9 +46,9 @@ export default async function Invites({
         )}
       </form>
 
-      <h2 className="month">Open links ({open.length})</h2>
+      <h2 className="month">Unused ({open.length})</h2>
       {open.length === 0 ? (
-        <p className="muted">None waiting.</p>
+        <p className="muted">None out right now.</p>
       ) : (
         <ul className="plain">
           {open.map((i) => (
@@ -59,9 +59,9 @@ export default async function Invites({
         </ul>
       )}
 
-      <h2 className="month">Accepted ({accepted.length})</h2>
+      <h2 className="month">Walked in ({accepted.length})</h2>
       {accepted.length === 0 ? (
-        <p className="muted">No one yet.</p>
+        <p className="muted">Nobody yet.</p>
       ) : (
         <ul className="plain">
           {accepted.map((i) => (

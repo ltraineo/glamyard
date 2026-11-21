@@ -281,3 +281,75 @@ body.night {
 @media (max-width: 560px) {
   .door-line { font-size: 2.2rem; }
 }
+
+/* ---------- Night: inside the app ---------- */
+.night .top {
+  background: rgba(11, 11, 15, 0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.night .brand {
+  font-family: var(--display); font-size: 1.35rem; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--hot); text-decoration: none;
+  text-shadow: 0 0 12px rgba(123, 47, 255, 0.6);
+}
+.night .brand:hover { color: var(--hot); }
+.night .top nav { font-size: 0.82rem; gap: 1.2rem; }
+.night .top nav a, .night .top nav .link { color: var(--muted); text-decoration: none; font-family: var(--mono); }
+.night .top nav a:hover, .night .top nav .link:hover { color: var(--ink); }
+.night .badge { background: var(--uv); font-family: var(--mono); font-weight: 700; }
+
+.night .wrap h1 { font-size: 2.6rem; line-height: 1.02; margin: 0 0 0.5rem; color: var(--ink); }
+.night .lede { color: var(--muted); font-size: 0.95rem; }
+.night .crumb a { color: var(--muted); text-decoration: none; }
+.night .crumb a:hover { color: var(--hot); }
+.night .month {
+  font-family: var(--mono); font-weight: 400; font-size: 0.72rem; letter-spacing: 0.18em;
+  color: var(--chrome); border-bottom-color: var(--line);
+}
+.night .note { color: var(--champagne); }
+.night .ok { color: var(--champagne); font-weight: 400; }
+
+.night .event { border-bottom-color: var(--line); }
+.night .event-name {
+  font-family: var(--display); text-transform: uppercase; letter-spacing: 0.02em;
+  font-size: 1.5rem; line-height: 1.1; color: var(--ink); text-decoration: none;
+}
+.night a.event-name:hover { color: var(--hot); }
+.night .event .muted { font-size: 0.85rem; }
+.night .faces .avatar { margin-right: -8px; border: 2px solid var(--paper); }
+.night .faces .small { margin-left: 0; }
+.night .faces .avatar ~ .small { margin-left: 0.9rem; }
+
+.night .btn-on, .night .btn-on:hover {
+  background: var(--hot); border-color: var(--hot); color: var(--accent-ink);
+}
+.night .btn-small { padding: 0.45rem 0.85rem; font-size: 0.8rem; }
+.night .link { color: var(--chrome); font-family: var(--mono); }
+.night .link:hover { color: var(--hot); }
+.night .link.muted { color: var(--muted); }
+.night .btn-quiet { color: var(--muted); }
+
+.night .person, .night .plain li { border-bottom-color: var(--line); }
+.night .person-name { color: var(--ink); text-decoration: none; font-weight: 700; }
+.night a.person-name:hover { color: var(--hot); }
+.night .person .muted { font-size: 0.85rem; }
+.night .tag {
+  background: rgba(255, 46, 136, 0.12); color: var(--hot);
+  font-family: var(--mono); font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 0.66rem; border-radius: 3px;
+}
+.night .profile h1 { margin-bottom: 0.25rem; }
+.night .profile .avatar { box-shadow: 0 0 0 2px var(--hot), 0 0 18px rgba(123, 47, 255, 0.5); border: 0; }
+.night .edit-profile { background: var(--wash); border: 1px solid var(--line); border-radius: 6px; }
+.night .suggest-grid label { color: var(--muted); }
+.night .copy { background: var(--wash); color: var(--chrome); font-size: 0.8rem; }
+
+.night .stats div { background: var(--wash); border: 1px solid var(--line); border-radius: 6px; }
+.night .stats strong { font-family: var(--display); font-size: 1.9rem; color: var(--ink); }
+.night .table th { font-family: var(--mono); font-weight: 400; letter-spacing: 0.14em; color: var(--chrome); }
+.night .table th, .night .table td { border-bottom-color: var(--line); }
+
+@media (max-width: 560px) {
+  .night .wrap h1 { font-size: 2.1rem; }
+  .night .top { flex-wrap: wrap; }
+}
