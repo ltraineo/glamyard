@@ -3,6 +3,7 @@ import Link from "next/link";
 import { APP_NAME } from "@/lib/config";
 import { getUser } from "@/lib/auth";
 import { incomingCount } from "@/lib/friends";
+import { pendingTagCount } from "@/lib/photos";
 
 export const metadata = {
   title: APP_NAME,
@@ -12,7 +13,7 @@ export const metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await getUser();
-  const requests = user ? await incomingCount(user.id) : 0;
+  const requests = user ? (await incomingCount(user.id)) + (await pendingTagCount(user.id)) : 0;
   return (
     <html lang="en">
       <head>
@@ -33,7 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <nav>
               <Link href="/events">Events</Link>
               <Link href="/friends">
-                Friends{requests > 0 && <span className="badge" aria-label={`${requests} new ${requests === 1 ? "request" : "requests"}`}>{requests}</span>}
+                Friends{requests > 0 && <span className="badge" aria-label={`${requests} waiting on you`}>{requests}</span>}
               </Link>
               <Link href="/invites">Invites</Link>
               <Link href={`/people/${user.id}`}>Me</Link>

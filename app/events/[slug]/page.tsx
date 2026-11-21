@@ -6,10 +6,18 @@ import { circleFirst } from "@/lib/circle";
 import { relationMap } from "@/lib/friends";
 import { dateRange } from "@/lib/format";
 import { CheckinButton, FriendButton, PersonRow } from "@/app/ui";
+import { PhotoUploader } from "@/app/photo-uploader";
 
-export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function EventPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ removed?: string }>;
+}) {
   const me = await requireUser();
   const { slug } = await params;
+  const { removed } = await searchParams;
   const [event] = await q("select * from events where slug = $1", [slug]);
   if (!event) notFound();
 
@@ -24,6 +32,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const going = people.some((p) => p.id === me.id);
   const friendCount = people.filter((p) => p.tag === "Friend").length;
   const here = `/events/${event.slug}`;
+  const photos = await q(
+    `select p.id, p.caption, u.name as poster_name
+     from photos p left join users u on u.id = p.user_id
+     where p.event_id = $1 order by p.created_at desc`,
+    [event.id]
+  );
 
   return (
     <>
@@ -47,6 +61,31 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
         <CheckinButton eventId={event.id} going={going} next={here} />
       </div>
+
+      <h2 className="month" id="photos">
+        Photos{photos.length ? ` · ${photos.length}` : ""}
+      </h2>
+      {removed && <p className="ok small">Photo removed.</p>}
+      {photos.length === 0 && (
+        <p className="muted small">
+          {going ? "No photos yet. Start the evidence file." : "No photos yet."}
+        </p>
+      )}
+      {photos.length > 0 && (
+        <div className="photo-grid">
+          {photos.map((ph) => (
+            <Link key={ph.id} href={`/photos/${ph.id}`} className="photo-tile" aria-label={ph.caption || `Photo by ${ph.poster_name}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/photos/${ph.id}/thumb`} alt="" loading="lazy" width={240} height={240} />
+            </Link>
+          ))}
+        </div>
+      )}
+      {going ? (
+        <PhotoUploader eventId={event.id} />
+      ) : (
+        <p className="muted small">Mark yourself as going to post photos.</p>
+      )}
 
       <h2 className="month">
         {people.length === 0

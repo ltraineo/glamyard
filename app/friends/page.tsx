@@ -15,6 +15,13 @@ export default async function Friends() {
   const incoming = rows.filter((r) => r.status === "pending" && r.requester_id !== me.id);
   const outgoing = rows.filter((r) => r.status === "pending" && r.requester_id === me.id);
   const friends = rows.filter((r) => r.status === "accepted");
+  const tagAsks = await q(
+    `select t.photo_id, u.name as tagger, e.name as event_name
+     from photo_tags t join photos p on p.id = t.photo_id join events e on e.id = p.event_id
+     left join users u on u.id = t.tagged_by
+     where t.user_id = $1 and t.status = 'pending' order by t.created_at desc`,
+    [me.id]
+  );
 
   const form = (action: string, id: number, label: string, cls: string) => (
     <form method="post" action={`/api/${action}`}>
@@ -33,6 +40,39 @@ export default async function Friends() {
         Friends see each other&apos;s full schedule and show up first on every list. Add people from
         any event or profile.
       </p>
+
+      {tagAsks.length > 0 && (
+        <>
+          <h2 className="month">Tagged you ({tagAsks.length})</h2>
+          <ul className="people">
+            {tagAsks.map((t) => (
+              <li key={t.photo_id} className="person">
+                <a href={`/photos/${t.photo_id}`} className="tag-thumb">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/photos/${t.photo_id}/thumb`} alt="" width={56} height={56} />
+                </a>
+                <div className="person-text">
+                  <strong>{t.tagger || "Someone"}</strong> tagged you
+                  <div className="muted small">{t.event_name}</div>
+                </div>
+                <div className="row-actions">
+                  <form method="post" action="/api/tag-approve">
+                    <input type="hidden" name="photo_id" value={t.photo_id} />
+                    <input type="hidden" name="next" value="/friends" />
+                    <button className="btn btn-small btn-on" type="submit">OK</button>
+                  </form>
+                  <form method="post" action="/api/tag-remove">
+                    <input type="hidden" name="photo_id" value={t.photo_id} />
+                    <input type="hidden" name="user_id" value={me.id} />
+                    <input type="hidden" name="next" value="/friends" />
+                    <button className="link muted small" type="submit">No thanks</button>
+                  </form>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       {incoming.length > 0 && (
         <>

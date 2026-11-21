@@ -83,6 +83,35 @@ const SCHEMA = [
     event_id integer references events(id) on delete set null,
     created_at timestamptz not null default now()
   )`,
+  `create table if not exists photos (
+    id serial primary key,
+    event_id integer not null references events(id) on delete cascade,
+    user_id integer references users(id) on delete cascade,
+    caption text not null default '',
+    full_jpg bytea not null,
+    thumb_jpg bytea not null,
+    width integer not null default 0,
+    height integer not null default 0,
+    created_at timestamptz not null default now()
+  )`,
+  `create index if not exists photos_event on photos (event_id, created_at desc)`,
+  `create table if not exists photo_tags (
+    photo_id integer not null references photos(id) on delete cascade,
+    user_id integer not null references users(id) on delete cascade,
+    tagged_by integer references users(id) on delete set null,
+    status text not null default 'pending',
+    created_at timestamptz not null default now(),
+    primary key (photo_id, user_id)
+  )`,
+  `create table if not exists photo_takedowns (
+    id serial primary key,
+    event_id integer references events(id) on delete set null,
+    poster_id integer references users(id) on delete set null,
+    by_user integer references users(id) on delete set null,
+    reason text not null,
+    caption text not null default '',
+    created_at timestamptz not null default now()
+  )`,
   `create table if not exists migrations (
     key text primary key,
     ran_at timestamptz not null default now()

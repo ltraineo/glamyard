@@ -21,6 +21,7 @@ import {
 } from "@/lib/signin";
 import { extractEvent, fetchPage, normalizeUrl } from "@/lib/extract";
 import * as friends from "@/lib/friends";
+import { addTag, getPhoto, takeDown } from "@/lib/photos";
 
 function text(fd: FormData, key: string, max = 140) {
   return String(fd.get(key) ?? "").trim().slice(0, max);
@@ -157,6 +158,54 @@ export async function POST(
       }
     }
     return go(next);
+  }
+
+  // ---- Photos ----
+  if (
+    action === "photo-tag" || action === "tag-approve" || action === "tag-remove" ||
+    action === "photo-delete" || action === "photo-takedown"
+  ) {
+    const photoId = parseInt(text(fd, "photo_id"), 10);
+    const photo = Number.isFinite(photoId) ? await getPhoto(photoId) : null;
+    if (!photo) return go("/events");
+    const here = `/photos/${photoId}`;
+    const back = `/events/${photo.event_slug}#photos`;
+
+    if (action === "photo-tag") {
+      const who = parseInt(text(fd, "user_id"), 10);
+      if (!Number.isFinite(who)) return go(here);
+      await addTag(photoId, user.id, who);
+      const [t] = await q("select status from photo_tags where photo_id = $1 and user_id = $2", [photoId, who]);
+      return go(`${here}?m=${t?.status === "pending" ? "pending" : "tagged"}`);
+    }
+    if (action === "tag-approve") {
+      await q(
+        "update photo_tags set status = 'approved' where photo_id = $1 and user_id = $2 and status = 'pending'",
+        [photoId, user.id]
+      );
+      return go(safePath(text(fd, "next", 200), here));
+    }
+    if (action === "tag-remove") {
+      const who = parseInt(text(fd, "user_id"), 10);
+      if (Number.isFinite(who)) {
+        // The person tagged, whoever tagged them, the poster, or an admin.
+        await q(
+          `delete from photo_tags where photo_id = $1 and user_id = $2
+             and ($3 = user_id or $3 = tagged_by or $4)`,
+          [photoId, who, user.id, photo.user_id === user.id || user.is_admin]
+        );
+      }
+      return go(safePath(text(fd, "next", 200), here));
+    }
+    if (action === "photo-delete") {
+      if (photo.user_id !== user.id && !user.is_admin) return go(here);
+      await takeDown(photoId, user.id, photo.user_id === user.id ? "poster" : "admin");
+      return go(back);
+    }
+    // photo-takedown: anyone who says they're in it. No review, logged for admins.
+    const [tag] = await q("select 1 from photo_tags where photo_id = $1 and user_id = $2", [photoId, user.id]);
+    await takeDown(photoId, user.id, tag ? "tagged" : "in-photo");
+    return go(`${back.replace("#photos", "")}?removed=1#photos`);
   }
 
   if (action === "friend" || action === "accept" || action === "unfriend") {

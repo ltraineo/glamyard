@@ -54,6 +54,15 @@ export default async function PersonPage({
   );
   const first = person.name.split(" ")[0];
   const here = `/people/${pid}`;
+  // Photos someone is tagged in follow the same rule as their schedule: friends only.
+  const tagged = canSee
+    ? await q(
+        `select p.id, p.caption, e.name as event_name
+         from photo_tags t join photos p on p.id = t.photo_id join events e on e.id = p.event_id
+         where t.user_id = $1 and t.status = 'approved' order by p.created_at desc limit 60`,
+        [pid]
+      )
+    : [];
 
   return (
     <>
@@ -153,6 +162,20 @@ export default async function PersonPage({
             </li>
           ))}
         </ul>
+      )}
+
+      {tagged.length > 0 && (
+        <>
+          <h2 className="month">Photos of {mine ? "you" : first}</h2>
+          <div className="photo-grid">
+            {tagged.map((ph) => (
+              <Link key={ph.id} href={`/photos/${ph.id}`} className="photo-tile" aria-label={ph.caption || `Photo at ${ph.event_name}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/photos/${ph.id}/thumb`} alt="" loading="lazy" width={240} height={240} />
+              </Link>
+            ))}
+          </div>
+        </>
       )}
 
       {invited.length > 0 && (

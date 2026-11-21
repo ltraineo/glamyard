@@ -3,6 +3,13 @@ import { redirect } from "next/navigation";
 import { q } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 
+const TAKEDOWN_REASONS: Record<string, string> = {
+  "in-photo": "Said they're in it",
+  tagged: "Tagged, took it down",
+  poster: "Poster deleted",
+  admin: "Admin deleted",
+};
+
 export default async function Admin({
   searchParams,
 }: {
@@ -35,6 +42,14 @@ export default async function Admin({
   const [unsent] = unsentId
     ? await q("select name, email, invite_code from invite_requests where id = $1", [parseInt(unsentId, 10) || 0])
     : [];
+  const takedowns = await q(
+    `select k.created_at, k.reason, k.caption, e.name as event_name,
+            p.name as poster, b.name as by_name, k.poster_id, k.by_user
+     from photo_takedowns k left join events e on e.id = k.event_id
+     left join users p on p.id = k.poster_id left join users b on b.id = k.by_user
+     order by k.created_at desc limit 50`
+  );
+  const [{ photos: photoCount }] = await q("select count(*)::int as photos from photos");
   const active = members.filter((m) => m.checkins > 0).length;
   const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "n/a");
 
@@ -149,6 +164,39 @@ export default async function Admin({
             </form>
           </div>
         ))
+      )}
+
+      <h2 className="month" id="takedowns">
+        Photo removals ({takedowns.length}) · {photoCount} photos live
+      </h2>
+      {takedowns.length === 0 ? (
+        <p className="muted">None yet.</p>
+      ) : (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Removed by</th>
+              <th>Why</th>
+              <th>Posted by</th>
+              <th>Event</th>
+            </tr>
+          </thead>
+          <tbody>
+            {takedowns.map((k, i) => (
+              <tr key={i}>
+                <td>{new Date(k.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</td>
+                <td>{k.by_user ? <Link href={`/people/${k.by_user}`}>{k.by_name}</Link> : "Former member"}</td>
+                <td>{TAKEDOWN_REASONS[k.reason] || k.reason}</td>
+                <td>{k.poster_id ? <Link href={`/people/${k.poster_id}`}>{k.poster}</Link> : "Former member"}</td>
+                <td>
+                  {k.event_name}
+                  {k.caption && <div className="muted small">“{k.caption}”</div>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
 
       <h2 className="month">Members</h2>
