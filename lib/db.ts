@@ -83,6 +83,33 @@ const SCHEMA = [
     event_id integer references events(id) on delete set null,
     created_at timestamptz not null default now()
   )`,
+  `create table if not exists migrations (
+    key text primary key,
+    ran_at timestamptz not null default now()
+  )`,
+];
+
+// One-time data changes, each run once ever and then recorded in migrations.
+const MIGRATIONS: { key: string; sql: string[] }[] = [
+  {
+    // Inviter and invitee are friends. Backfills members who joined before that
+    // rule: accept any pending request between them, then add the rest. Runs
+    // once, so a later unfriend is never undone.
+    key: "invite-friends-v1",
+    sql: [
+      `update friendships f set status = 'accepted', accepted_at = now()
+         from users u
+         where f.status = 'pending' and u.invited_by is not null
+           and least(f.requester_id, f.addressee_id) = least(u.id, u.invited_by)
+           and greatest(f.requester_id, f.addressee_id) = greatest(u.id, u.invited_by)`,
+      `insert into friendships (requester_id, addressee_id, status, accepted_at)
+         select u.invited_by, u.id, 'accepted', now() from users u
+         where u.invited_by is not null and not exists (
+           select 1 from friendships f
+           where least(f.requester_id, f.addressee_id) = least(u.id, u.invited_by)
+             and greatest(f.requester_id, f.addressee_id) = greatest(u.id, u.invited_by))`,
+    ],
+  },
 ];
 
 async function init(): Promise<Run> {
@@ -101,6 +128,14 @@ async function init(): Promise<Run> {
     run = async (sql, params = []) => (await lite.query(sql, params)).rows as Row[];
   }
   for (const stmt of SCHEMA) await run(stmt);
+  for (const m of MIGRATIONS) {
+    // Claim the key first, so two servers starting together don't both run it.
+    const claimed = await run(
+      "insert into migrations (key) values ($1) on conflict do nothing returning key",
+      [m.key]
+    );
+    if (claimed.length) for (const stmt of m.sql) await run(stmt);
+  }
   for (const e of SEED_EVENTS) {
     await run(
       `insert into events (slug, name, start_date, end_date, city, url, note)

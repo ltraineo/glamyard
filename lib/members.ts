@@ -61,6 +61,12 @@ export async function joinWithInvite(
     await q("delete from users where id = $1", [u.id]);
     return { error: "used" };
   }
+  // Whoever sent the invite and the person who accepted it start out as friends.
+  await q(
+    `insert into friendships (requester_id, addressee_id, status, accepted_at)
+     values ($1, $2, 'accepted', now()) on conflict do nothing`,
+    [invite.inviter_id, u.id]
+  );
   return { id: u.id };
 }
 
