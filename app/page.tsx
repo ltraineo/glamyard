@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import { APP_NAME, placeholderEnabled } from "@/lib/config";
 import { getUser } from "@/lib/auth";
 import { memberCount } from "@/lib/members";
+import { SignInOptions } from "@/app/signin-options";
+import { Stamp } from "@/app/stamp";
 
-// The public front door: deliberately bare. Sign-in lives at /signin, and new
-// members arrive through invite links, which carry their own sign-up options.
+// The front door: deliberately bare. One way in for strangers (ask nicely),
+// and a barely-there link for people already on the list.
 export default async function Home({
   searchParams,
 }: {
@@ -17,19 +19,22 @@ export default async function Home({
   if (error) redirect(`/signin?error=${encodeURIComponent(error)}`);
 
   return (
-    <div className="gate">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="gate-logo" src="/logo.png" alt="" width={109} height={220} />
-      <h1 className="gate-name">{APP_NAME}</h1>
-      <p className="gate-tagline">Who do I know at this event?</p>
-      <p className="muted small">Invite only.</p>
-      <p className="footer-links">
-        <Link href="/request">Request an invite</Link>
-        <span className="muted"> · </span>
-        <Link className="muted" href="/signin">
-          Member sign in
-        </Link>
+    <div className="gate door">
+      <h1 className="sr-only">{APP_NAME}</h1>
+      <Stamp width={250} label={APP_NAME} />
+      <p className="door-line">
+        Who do I know
+        <br />
+        at this event??
       </p>
+      <Link className="btn btn-hot" href="/request">
+        Ask nicely
+      </Link>
+      <details className="on-list">
+        <summary>I&apos;m on the list</summary>
+        <SignInOptions />
+      </details>
+      <p className="door-foot">Invite only · <Link href="/privacy">Privacy</Link></p>
     </div>
   );
 }

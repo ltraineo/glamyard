@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { APP_NAME } from "@/lib/config";
 import { getUser } from "@/lib/auth";
 import { SIGNIN_ERRORS, SignInOptions } from "@/app/signin-options";
+import { Stamp } from "@/app/stamp";
 
 export const metadata = { title: `Sign in · ${APP_NAME}` };
 
@@ -16,14 +17,13 @@ export default async function SignIn({
 
   return (
     <div className="gate">
-      <h1 className="gate-name">{APP_NAME}</h1>
-      <p className="gate-line">Member sign in</p>
+      <Stamp width={170} label={APP_NAME} />
+      <h2 className="gate-head">On the list?</h2>
+      <p className="gate-line">Prove it.</p>
       {error && SIGNIN_ERRORS[error] && <p className="error">{SIGNIN_ERRORS[error]}</p>}
       <SignInOptions />
-      <p className="footer-links">
-        <Link className="muted" href="/privacy">
-          Privacy
-        </Link>
+      <p className="door-foot">
+        <Link href="/request">Not yet? Ask nicely</Link> · <Link href="/privacy">Privacy</Link>
       </p>
     </div>
   );

@@ -15,7 +15,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const requests = user ? await incomingCount(user.id) : 0;
   return (
     <html lang="en">
-      <body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&display=swap"
+        />
+        {!user && <meta name="theme-color" content="#0B0B0F" />}
+      </head>
+      <body className={user ? undefined : "night"}>
         {user && (
           <header className="top">
             <Link href="/events" className="brand">

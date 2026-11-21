@@ -183,3 +183,101 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   .inline-form { flex-direction: column; }
   .table { display: block; overflow-x: auto; }
 }
+
+/* ---------- Night: the logged-out door ----------
+   Everything a non-member sees runs dark. Re-pointing the base variables
+   re-themes the shared gate styles; the rules below add the disco layer. */
+:root {
+  --display: Anton, Impact, "Arial Narrow", sans-serif;
+  --mono: "Space Mono", ui-monospace, Menlo, monospace;
+}
+body.night {
+  --ink: #f2f2f4;
+  --muted: #8a8d96;
+  --line: #2a2a33;
+  --paper: #0b0b0f;
+  --wash: #16161d;
+  --accent: #ff2e88;
+  --accent-ink: #0b0b0f;
+  --danger: #ff6b8b;
+  --hot: #ff2e88;
+  --uv: #7b2fff;
+  --chrome: #c9ccd1;
+  --champagne: #e8c468;
+  font-family: var(--mono);
+  font-size: 15px;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 105%, rgba(123, 47, 255, 0.22), transparent 70%),
+    var(--paper);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+.night a { color: var(--chrome); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.night a:hover { color: var(--hot); text-decoration-color: var(--hot); }
+.night strong { color: var(--champagne); font-weight: 400; }
+
+.night .gate { max-width: 360px; }
+.stamp {
+  display: block; margin: 0 auto 1.5rem; height: auto; max-width: 100%;
+  color: var(--hot);
+  filter: drop-shadow(0 0 14px rgba(123, 47, 255, 0.55));
+  transition: filter 0.4s ease;
+}
+.stamp:hover { filter: drop-shadow(0 0 22px rgba(123, 47, 255, 0.9)); }
+
+.door-line {
+  font-family: var(--display); text-transform: uppercase;
+  font-size: 2.6rem; line-height: 1.02; letter-spacing: 0.01em;
+  color: var(--ink); margin: 0 0 2rem;
+}
+.gate-head {
+  font-family: var(--display); font-weight: 400; text-transform: uppercase;
+  font-size: 2.2rem; line-height: 1.05; letter-spacing: 0.01em;
+  color: var(--ink); margin: 0 0 0.5rem;
+}
+.night .gate-line { color: var(--muted); margin: 0 0 1.5rem; }
+
+.night .btn {
+  font-family: var(--mono); font-weight: 700; letter-spacing: 0.02em;
+  border-radius: 4px; border-color: var(--line); color: var(--ink); background: transparent;
+  text-decoration: none;
+}
+.night .btn:hover { border-color: var(--chrome); background: var(--wash); color: var(--ink); }
+.night .btn-hot, .night .gate-form .btn-hot {
+  display: inline-block; background: var(--hot); border-color: var(--hot); color: var(--accent-ink);
+  padding: 0.8rem 2.2rem; font-size: 1rem;
+}
+.night .btn-hot:hover { background: var(--hot); color: var(--accent-ink); box-shadow: 0 0 24px rgba(255, 46, 136, 0.45); }
+.night .btn-google:hover, .night .btn-quiet-solid:hover { background: var(--wash); }
+
+.night input {
+  font-family: var(--mono); background: var(--wash); border-color: var(--line); color: var(--ink);
+  border-radius: 4px; padding: 0.75rem 0.85rem;
+}
+.night input::placeholder { color: #5d606a; }
+.night input:focus { outline: 1px solid var(--hot); outline-offset: 0; border-color: var(--hot); }
+.night .or, .night .muted { color: var(--muted); }
+.night .error { color: var(--danger); font-weight: 400; }
+.night .vouch { background: var(--wash); border: 1px solid var(--line); }
+.night .vouch strong { color: var(--champagne); }
+.night .avatar { background: #1f1f28; color: var(--hot); border-color: var(--line); }
+
+.on-list { margin: 2.2rem 0 0; }
+.on-list summary {
+  list-style: none; cursor: pointer; display: inline-block;
+  font-size: 0.78rem; letter-spacing: 0.08em; color: #5d606a;
+}
+.on-list summary::-webkit-details-marker { display: none; }
+.on-list summary:hover { color: var(--chrome); }
+.on-list[open] summary { color: var(--chrome); margin-bottom: 1rem; }
+
+.door-foot { margin: 2rem 0 0; font-size: 0.75rem; color: #5d606a; letter-spacing: 0.04em; }
+.night .door-foot a { color: #5d606a; }
+.night .door-foot a:hover { color: var(--hot); }
+
+.night .prose { color: var(--ink); }
+.night h1, .night .prose h2 { font-family: var(--display); font-weight: 400; text-transform: uppercase; letter-spacing: 0.01em; }
+
+@media (max-width: 560px) {
+  .door-line { font-size: 2.2rem; }
+}

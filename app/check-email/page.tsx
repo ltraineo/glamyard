@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { APP_NAME } from "@/lib/config";
+import { Stamp } from "@/app/stamp";
 
 export default async function CheckEmail({
   searchParams,
@@ -9,13 +10,14 @@ export default async function CheckEmail({
   const { to } = await searchParams;
   return (
     <div className="gate">
-      <h1 className="gate-name">{APP_NAME}</h1>
+      <Stamp width={170} label={APP_NAME} />
+      <h2 className="gate-head">Check your inbox</h2>
       <p className="gate-line">
-        Check your email{to ? <> at <strong>{to}</strong></> : ""}. If it belongs to a member or an
-        invite, a link is on its way. It works once and expires in 30 minutes.
+        If {to ? <strong>{to}</strong> : "that email"} is on the list, a link is on its way. It works once and
+        expires in 30 minutes.
       </p>
-      <p className="muted small">
-        Nothing after a few minutes? Check spam, or <Link href="/signin">try again</Link>.
+      <p className="door-foot">
+        Nothing yet? Check spam, or <Link href="/signin">try again</Link>.
       </p>
     </div>
   );

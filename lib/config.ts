@@ -1,4 +1,4 @@
-export const APP_NAME = process.env.APP_NAME || "Who's Going";
+export const APP_NAME = process.env.APP_NAME || "Glamyard";
 
 export const INVITE_CAP = process.env.INVITE_CAP
   ? parseInt(process.env.INVITE_CAP, 10)

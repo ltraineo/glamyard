@@ -1,7 +1,7 @@
 import { emailEnabled, googleEnabled, linkedinEnabled, placeholderEnabled } from "@/lib/config";
 
 export const SIGNIN_ERRORS: Record<string, string> = {
-  unknown: "That email isn't on the list.",
+  unknown: "That email isn't on the list. Yet.",
   invite: "You need an invite from a member to join.",
   "linkedin-new": "LinkedIn sign-in is for members who already connected it. Use Google or email.",
   linkedin: "LinkedIn sign-in didn't complete. Please try again.",
