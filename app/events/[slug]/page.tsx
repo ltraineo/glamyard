@@ -33,7 +33,7 @@ export default async function EventPage({
   const friendCount = people.filter((p) => p.tag === "Friend").length;
   const here = `/events/${event.slug}`;
   const photos = await q(
-    `select p.id, p.caption, u.name as poster_name
+    `select p.id, p.caption, p.user_id, u.name as poster_name
      from photos p left join users u on u.id = p.user_id
      where p.event_id = $1 order by p.created_at desc`,
     [event.id]
@@ -74,10 +74,17 @@ export default async function EventPage({
       {photos.length > 0 && (
         <div className="photo-grid">
           {photos.map((ph) => (
-            <Link key={ph.id} href={`/photos/${ph.id}`} className="photo-tile" aria-label={ph.caption || `Photo by ${ph.poster_name}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/photos/${ph.id}/thumb`} alt="" loading="lazy" width={240} height={240} />
-            </Link>
+            <div key={ph.id} className="photo-cell">
+              <Link href={`/photos/${ph.id}`} className="photo-tile" aria-label={ph.caption || `Photo by ${ph.poster_name}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/photos/${ph.id}/thumb`} alt="" loading="lazy" width={240} height={240} />
+              </Link>
+              {(ph.user_id === me.id || me.is_admin) && (
+                <Link href={`/photos/${ph.id}?confirm=delete`} className="photo-x" aria-label="Delete photo" title="Delete photo">
+                  ✕
+                </Link>
+              )}
+            </div>
           ))}
         </div>
       )}

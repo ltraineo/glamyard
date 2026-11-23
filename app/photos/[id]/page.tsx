@@ -15,14 +15,14 @@ export default async function PhotoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ m?: string }>;
+  searchParams: Promise<{ m?: string; confirm?: string }>;
 }) {
   const me = await requireUser();
   const id = parseInt((await params).id, 10);
   if (!Number.isFinite(id)) notFound();
   const photo = await getPhoto(id);
   if (!photo) notFound();
-  const { m } = await searchParams;
+  const { m, confirm } = await searchParams;
 
   const tags = await q(
     `select t.user_id, t.status, t.tagged_by, u.name
@@ -55,6 +55,23 @@ export default async function PhotoPage({
       <p className="crumb">
         <Link href={back}>← {photo.event_name}</Link>
       </p>
+
+      {confirm === "delete" && canDelete && (
+        <div className="confirm-bar" role="alert">
+          <p>Delete this photo for everyone? This can&apos;t be undone.</p>
+          <div className="row-actions">
+            <form method="post" action="/api/photo-delete">
+              <input type="hidden" name="photo_id" value={id} />
+              <button className="btn btn-small btn-danger" type="submit">
+                Delete it
+              </button>
+            </form>
+            <Link className="link small" href={back}>
+              Cancel
+            </Link>
+          </div>
+        </div>
+      )}
 
       <figure className="photo-full">
         {/* eslint-disable-next-line @next/next/no-img-element */}
